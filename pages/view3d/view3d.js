@@ -117,4 +117,6 @@ Page({
 
   closeInfo() { this.setData({ info: null }); this.render(); },
   resetCam() { this.cam = p3.makeCam(); this.render(); },
+  goPlan() { wx.navigateTo({ url: '/pages/map/map' }); },
+  goBuild() { wx.navigateTo({ url: '/pages/build/build' }); },
 });

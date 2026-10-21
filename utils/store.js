@@ -2,85 +2,104 @@
  * store.js — MVP 数据层：位置树 + 物品，本地存储持久化
  * 接入云开发时只需替换本文件的 load/save 与各写操作，页面代码不用动。
  */
-const KEY = 'cangbaotu_data_v2'; // v2：底图改为户型图（矩形坐标）
+const KEY = 'cangbaotu_data_v3'; // v3：导入用户真实户型（两室一厅一厨一卫双阳台）
 const SEASON_LABEL = { winter: '冬', summer: '夏', spring: '春', autumn: '秋', all: '四季' };
 
 const SEED = {
   style: 'plan', // 底图风格：plan=户型图（俯视） / iso=2.5D 等轴测
   plan: {
-    outer: [20, 80, 360, 400],
+    // 用户真实户型：总宽 9590mm（3225+3340+3025），进深 5655 + 阳台 1093mm
+    outer: [20, 153, 360, 253],
     partitions: [
-      [226, 84, 226, 260],   // 卧室 | 客厅 隔墙
-      [24, 262, 376, 262],   // 上排房间 | 阳台 隔墙
+      [20, 194, 380, 194],   // 阳台行 | 主区 隔墙
+      [141, 194, 141, 406],  // 卧室A | 厨房/客餐厅
+      [266, 194, 266, 406],  // 厨卫/客餐厅 | 卧室B
+      [203, 194, 203, 299],  // 厨房 | 卫生间
+      [141, 299, 266, 299],  // 厨卫行 | 客餐厅
     ],
     doors: [
-      { x: 96,  y: 257, w: 48, h: 10 },  // 卧室 → 阳台
-      { x: 286, y: 257, w: 48, h: 10 },  // 客厅 → 阳台
-      { x: 15,  y: 150, w: 10, h: 46 },  // 入户门（卧室左墙）
+      { x: 52,  y: 189, w: 44, h: 10 },  // 阳台A ↔ 卧室A
+      { x: 296, y: 189, w: 44, h: 10 },  // 阳台B ↔ 卧室B
+      { x: 136, y: 350, w: 10, h: 46 },  // 卧室A ↔ 客餐厅
+      { x: 261, y: 340, w: 10, h: 46 },  // 卧室B ↔ 客餐厅
+      { x: 150, y: 294, w: 48, h: 10 },  // 厨房 ↔ 客餐厅
+      { x: 225, y: 294, w: 44, h: 10 },  // 卫生间 ↔ 客餐厅
+      { x: 180, y: 401, w: 52, h: 10 },  // 入户门（客餐厅南墙）
     ],
   },
   zones: [
-    { name: '卧室', x: 24,  y: 84,  w: 200, h: 176 },
-    { name: '客厅', x: 228, y: 84,  w: 148, h: 176 },
-    { name: '阳台', x: 24,  y: 264, w: 352, h: 212 },
+    { name: '阳台',   x: 20,  y: 153, w: 121, h: 41 },
+    { name: '阳台',   x: 267, y: 153, w: 113, h: 41 },
+    { name: '卧室',   x: 20,  y: 194, w: 121, h: 212 },
+    { name: '厨房',   x: 141, y: 194, w: 62,  h: 105 },
+    { name: '卫生间', x: 203, y: 194, w: 63,  h: 105 },
+    { name: '客餐厅', x: 141, y: 299, w: 125, h: 107 },
+    { name: '卧室',   x: 267, y: 194, w: 113, h: 212 },
   ],
   furniture: [
-    { id: 'wardrobe_b', x: 32,  y: 94,  w: 84, h: 34, type: 'wardrobe', color: 'blue',   label: '衣柜B' },
-    { id: 'bed',        x: 140, y: 94,  w: 64, h: 86, type: 'bed',      color: 'amber',  label: '床' },
-    { id: 'box_bed',    x: 146, y: 196, w: 52, h: 30, type: 'box',      color: 'teal',   label: '床底塑料箱1' },
-    { id: 'sofa',       x: 240, y: 96,  w: 66, h: 30, type: 'sofa',     color: 'coral',  label: '沙发' },
-    { id: 'tvcab',      x: 250, y: 218, w: 78, h: 18, type: 'tvcab',    color: 'purple', label: '电视柜' },
-    { id: 'shelf',      x: 36,  y: 300, w: 88, h: 26, type: 'shelf',    color: 'gray',   label: '储物架' },
-    { id: 'box_c',      x: 180, y: 336, w: 48, h: 34, type: 'box',      color: 'teal',   label: '纸箱C' },
+    { id: 'wardrobe_a',    x: 30,  y: 200, w: 84, h: 34, type: 'wardrobe', color: 'blue',   label: '衣柜A' },
+    { id: 'box_bed1',      x: 80,  y: 362, w: 52, h: 30, type: 'box',      color: 'teal',   label: '床底塑料箱1' },
+    { id: 'wardrobe_b',    x: 275, y: 200, w: 80, h: 32, type: 'wardrobe', color: 'blue',   label: '衣柜B' },
+    { id: 'box_bed2',      x: 300, y: 362, w: 58, h: 30, type: 'box',      color: 'teal',   label: '床底收纳箱2' },
+    { id: 'shelf_ba1',     x: 30,  y: 160, w: 70, h: 26, type: 'shelf',    color: 'gray',   label: '阳台A储物架' },
+    { id: 'box_c',         x: 285, y: 158, w: 46, h: 28, type: 'box',      color: 'teal',   label: '纸箱C' },
+    { id: 'shelf_kitchen', x: 145, y: 202, w: 54, h: 22, type: 'shelf',    color: 'gray',   label: '厨房置物架' },
+    { id: 'tvcab',         x: 150, y: 372, w: 80, h: 18, type: 'tvcab',    color: 'purple', label: '客餐厅电视柜' },
+    { id: 'shoebox',       x: 146, y: 340, w: 56, h: 22, type: 'cabinet',  color: 'purple', label: '玄关柜' },
   ],
   root: {
     id: 'home', name: '我的家', children: [
-      { id: 'wardrobe_b', name: '衣柜B', children: [
-        { id: 'wb_top', name: '上层', children: [
-          { id: 'box_blue', name: '蓝色收纳箱2号', children: [
-            { id: 'l_blue', name: '箱内', items: [
-              { id: 'it1', name: '羽绒服', qty: 3, season: 'winter', status: 'stored' },
-              { id: 'it2', name: '羊绒衫', qty: 4, season: 'winter', status: 'stored' },
-            ] },
-          ] },
-        ] },
-        { id: 'wb_mid', name: '中层', items: [
+      { id: 'wardrobe_a', name: '衣柜A', children: [
+        { id: 'in_wardrobe_a', name: '箱内', items: [
+          { id: 'it1', name: '羽绒服', qty: 3, season: 'winter', status: 'stored' },
+          { id: 'it2', name: '羊绒衫', qty: 4, season: 'winter', status: 'stored' },
           { id: 'it3', name: '床单被套', qty: 2, season: 'all', status: 'stored' },
         ] },
       ] },
-      { id: 'bed', name: '床', children: [
-        { id: 'under_bed', name: '床底', children: [
-          { id: 'box_bed', name: '床底塑料箱1', children: [
-            { id: 'l_bed', name: '箱内', items: [
-              { id: 'it4', name: '手套', qty: 2, season: 'winter', status: 'stored' },
-              { id: 'it5', name: '取暖器', qty: 1, season: 'winter', status: 'stored' },
-              { id: 'it6', name: '电热毯', qty: 1, season: 'winter', status: 'stored' },
-            ] },
-          ] },
+      { id: 'box_bed1', name: '床底塑料箱1', children: [
+        { id: 'in_box_bed1', name: '箱内', items: [
+          { id: 'it4', name: '手套', qty: 2, season: 'winter', status: 'stored' },
+          { id: 'it5', name: '取暖器', qty: 1, season: 'winter', status: 'stored' },
+          { id: 'it6', name: '电热毯', qty: 1, season: 'winter', status: 'stored' },
         ] },
       ] },
-      { id: 'sofa', name: '沙发', children: [
-        { id: 'sofa_box', name: '沙发底储物格', items: [
-          { id: 'it7', name: '凉席', qty: 1, season: 'summer', status: 'stored' },
+      { id: 'wardrobe_b', name: '衣柜B', children: [
+        { id: 'in_wardrobe_b', name: '箱内', items: [
+          { id: 'it7', name: '夏凉被', qty: 2, season: 'summer', status: 'stored' },
+          { id: 'it8', name: '凉席', qty: 1, season: 'summer', status: 'stored' },
         ] },
       ] },
-      { id: 'tvcab', name: '电视柜', children: [
-        { id: 'tv_drawer', name: '抽屉', items: [
-          { id: 'it8', name: '风扇', qty: 1, season: 'summer', status: 'stored' },
-          { id: 'it9', name: '数据线合集', qty: 1, season: 'all', status: 'stored' },
+      { id: 'box_bed2', name: '床底收纳箱2', children: [
+        { id: 'in_box_bed2', name: '箱内', items: [
+          { id: 'it9', name: '风扇', qty: 1, season: 'summer', status: 'stored' },
         ] },
       ] },
-      { id: 'shelf', name: '阳台储物架', children: [
-        { id: 'shelf_s1', name: '第一格', children: [
-          { id: 'box_c', name: '纸箱C', children: [
-            { id: 'l_c', name: '箱内', items: [
-              { id: 'it10', name: '落地灯灯罩', qty: 1, season: 'all', status: 'stored' },
-              { id: 'it11', name: '备用灯泡', qty: 4, season: 'all', status: 'stored' },
-            ] },
-          ] },
+      { id: 'shelf_ba1', name: '阳台A储物架', children: [
+        { id: 'in_shelf_ba1', name: '架内', items: [
+          { id: 'it10', name: '行李箱', qty: 1, season: 'all', status: 'stored' },
         ] },
-        { id: 'shelf_s2', name: '第二格', items: [
-          { id: 'it12', name: '工具箱', qty: 1, season: 'all', status: 'stored' },
+      ] },
+      { id: 'box_c', name: '纸箱C', children: [
+        { id: 'in_box_c', name: '箱内', items: [
+          { id: 'it11', name: '落地灯灯罩', qty: 1, season: 'all', status: 'stored' },
+          { id: 'it12', name: '备用灯泡', qty: 4, season: 'all', status: 'stored' },
+        ] },
+      ] },
+      { id: 'shelf_kitchen', name: '厨房置物架', children: [
+        { id: 'in_shelf_kitchen', name: '架内', items: [
+          { id: 'it13', name: '清洁用品', qty: 1, season: 'all', status: 'stored' },
+        ] },
+      ] },
+      { id: 'tvcab', name: '客餐厅电视柜', children: [
+        { id: 'in_tvcab', name: '抽屉', items: [
+          { id: 'it14', name: '数据线合集', qty: 1, season: 'all', status: 'stored' },
+          { id: 'it15', name: '遥控器收纳', qty: 1, season: 'all', status: 'stored' },
+        ] },
+      ] },
+      { id: 'shoebox', name: '玄关柜', children: [
+        { id: 'in_shoebox', name: '柜内', items: [
+          { id: 'it16', name: '工具箱', qty: 1, season: 'all', status: 'stored' },
+          { id: 'it17', name: '手电筒', qty: 1, season: 'all', status: 'stored' },
         ] },
       ] },
     ],
