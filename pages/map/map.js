@@ -32,6 +32,7 @@ Page({
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.dpr = dpr;
+        this.view = { zoom: 1, cx: DW / 2, cy: DH / 2 }; // 视图状态：缩放倍数 + 视野中心（设计坐标）
         this.render();
         // 高亮脉冲动画
         this.timer = setInterval(() => {
@@ -42,9 +43,24 @@ Page({
 
   onUnload() { clearInterval(this.timer); },
 
-  scale() { return Math.min(this.rect.width / DW, this.rect.height / DH); },
-  offX() { return (this.rect.width - DW * this.scale()) / 2; },
-  offY() { return (this.rect.height - DH * this.scale()) / 2; },
+  baseScale() { return Math.min(this.rect.width / DW, this.rect.height / DH); },
+  scale() { return this.baseScale() * this.view.zoom; },
+  offX() { return this.rect.width / 2 - this.view.cx * this.scale(); },
+  offY() { return this.rect.height / 2 - this.view.cy * this.scale(); },
+  toDesign(cx0, cy0) {
+    return {
+      x: (cx0 - this.rect.left - this.offX()) / this.scale(),
+      y: (cy0 - this.rect.top - this.offY()) / this.scale(),
+    };
+  },
+  clampView() {
+    this.view.zoom = Math.max(0.5, Math.min(8, this.view.zoom));
+    this.view.cx = Math.max(0, Math.min(DW, this.view.cx));
+    this.view.cy = Math.max(0, Math.min(DH, this.view.cy));
+  },
+  zoomAt(f) { this.view.zoom = Math.max(0.5, Math.min(8, this.view.zoom * f)); this.clampView(); this.render(); },
+  zoomIn() { this.zoomAt(1.5); },
+  zoomOut() { this.zoomAt(1 / 1.5); },
 
   render() {
     const ctx = this.ctx;
@@ -57,14 +73,63 @@ Page({
     ctx.restore();
   },
 
-  /* 点击家具 → 下钻 */
+  /* 触摸：单指拖动平移 / 轻点家具下钻；双指捏合缩放（以捏合中心为锚点） */
   onTouchStart(e) {
-    const t = e.touches[0];
-    const s = this.scale();
-    const x = (t.clientX - this.rect.left - this.offX()) / s;
-    const y = (t.clientY - this.rect.top - this.offY()) / s;
-    const id = hitTest(store.furniture, x, y);
-    if (id) this.openLocation(id);
+    if (e.touches.length === 1) {
+      this.tp = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+      this.moved = 0;
+    } else if (e.touches.length === 2) {
+      this.pinch0 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      this.zoom0 = this.view.zoom;
+      const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      this.pinchPt = this.toDesign(mx, my);
+    }
+  },
+
+  onTouchMove(e) {
+    if (e.touches.length === 1 && this.tp) {
+      const dx = e.touches[0].clientX - this.tp.x;
+      const dy = e.touches[0].clientY - this.tp.y;
+      this.moved = (this.moved || 0) + Math.abs(dx) + Math.abs(dy);
+      if (this.moved > 8) {
+        const s = this.scale();
+        this.view.cx -= dx / s;
+        this.view.cy -= dy / s;
+        this.clampView();
+        this.render();
+      }
+      this.tp = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: this.tp.t };
+    } else if (e.touches.length === 2 && this.pinch0) {
+      const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      if (d > 0) {
+        this.view.zoom = Math.max(0.5, Math.min(8, (this.zoom0 * d) / this.pinch0));
+        const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const s = this.scale();
+        const offX = mx - this.rect.left - this.pinchPt.x * s;
+        const offY = my - this.rect.top - this.pinchPt.y * s;
+        this.view.cx = (this.rect.width / 2 - offX) / s;
+        this.view.cy = (this.rect.height / 2 - offY) / s;
+        this.clampView();
+        this.render();
+      }
+    }
+  },
+
+  onTouchEnd(e) {
+    if (e.touches.length === 1) {
+      this.tp = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+      this.pinch0 = null;
+      return;
+    }
+    if (this.tp && (this.moved || 0) < 6 && Date.now() - this.tp.t < 350 && e.changedTouches.length === 1) {
+      const t = e.changedTouches[0];
+      const p = this.toDesign(t.clientX, t.clientY);
+      const id = hitTest(store.furniture, p.x, p.y);
+      if (id) this.openLocation(id);
+    }
+    this.tp = null; this.pinch0 = null;
   },
 
   openLocation(id) {

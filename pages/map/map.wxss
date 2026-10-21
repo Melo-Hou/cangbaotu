@@ -41,3 +41,6 @@
 .fabrow { position: fixed; right: 24rpx; bottom: 180rpx; display: flex; flex-direction: column; gap: 14rpx; z-index: 5; }
 .fab { background: #185fa5; color: #fff; border-radius: 32rpx; padding: 14rpx 28rpx; font-size: 24rpx; box-shadow: 0 4rpx 12rpx rgba(24,95,165,.3); text-align: center; }
 .fab:active { opacity: 0.85; }
+
+.zoomctl { position: fixed; left: 24rpx; bottom: 180rpx; display: flex; flex-direction: column; gap: 12rpx; z-index: 5; }
+.zbtn { width: 72rpx; height: 72rpx; line-height: 66rpx; text-align: center; background: #fff; border: 1rpx solid #e5e3dc; border-radius: 50%; color: #185fa5; font-size: 36rpx; font-weight: 600; }
