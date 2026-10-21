@@ -1,7 +1,7 @@
 {
   "compileType": "miniprogram",
-  "appid": "touristappid",
-  "projectname": "cangbaotu-mvp",
+  "appid": "wx96958ecf2ae565a5",
+  "projectname": "cangbaotu",
   "libVersion": "latest",
   "setting": { "es6": true, "minified": true, "urlCheck": false }
 }
