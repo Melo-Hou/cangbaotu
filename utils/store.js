@@ -2,24 +2,36 @@
  * store.js — MVP 数据层：位置树 + 物品，本地存储持久化
  * 接入云开发时只需替换本文件的 load/save 与各写操作，页面代码不用动。
  */
-const KEY = 'cangbaotu_data_v1';
+const KEY = 'cangbaotu_data_v2'; // v2：底图改为户型图（矩形坐标）
 const SEASON_LABEL = { winter: '冬', summer: '夏', spring: '春', autumn: '秋', all: '四季' };
 
 const SEED = {
+  style: 'plan', // 底图风格：plan=户型图（俯视） / iso=2.5D 等轴测
+  plan: {
+    outer: [20, 80, 360, 400],
+    partitions: [
+      [226, 84, 226, 260],   // 卧室 | 客厅 隔墙
+      [24, 262, 376, 262],   // 上排房间 | 阳台 隔墙
+    ],
+    doors: [
+      { x: 96,  y: 257, w: 48, h: 10 },  // 卧室 → 阳台
+      { x: 286, y: 257, w: 48, h: 10 },  // 客厅 → 阳台
+      { x: 15,  y: 150, w: 10, h: 46 },  // 入户门（卧室左墙）
+    ],
+  },
   zones: [
-    { name: '卧室', pts: [[140, 88], [272, 154], [140, 220], [8, 154]] },
-    { name: '客厅', pts: [[285, 242], [392, 296], [285, 350], [178, 296]] },
-    { name: '阳台', pts: [[148, 356], [258, 410], [148, 464], [38, 410]] },
+    { name: '卧室', x: 24,  y: 84,  w: 200, h: 176 },
+    { name: '客厅', x: 228, y: 84,  w: 148, h: 176 },
+    { name: '阳台', x: 24,  y: 264, w: 352, h: 212 },
   ],
   furniture: [
-    { id: 'wardrobe_b', cx: 100, cy: 152, h: 62, color: 'blue',   label: '衣柜B' },
-    { id: 'box_blue',   cx: 52,  cy: 196, h: 18, color: 'teal',   label: '蓝色收纳箱2' },
-    { id: 'bed',        cx: 196, cy: 188, h: 26, color: 'amber',  label: '床' },
-    { id: 'box_bed',    cx: 136, cy: 224, h: 20, color: 'teal',   label: '床底塑料箱1' },
-    { id: 'sofa',       cx: 250, cy: 296, h: 30, color: 'coral',  label: '沙发' },
-    { id: 'tvcab',      cx: 322, cy: 322, h: 22, color: 'purple', label: '电视柜' },
-    { id: 'shelf',      cx: 126, cy: 418, h: 52, color: 'gray',   label: '储物架' },
-    { id: 'box_c',      cx: 196, cy: 434, h: 22, color: 'teal',   label: '纸箱C' },
+    { id: 'wardrobe_b', x: 32,  y: 94,  w: 84, h: 34, type: 'wardrobe', color: 'blue',   label: '衣柜B' },
+    { id: 'bed',        x: 140, y: 94,  w: 64, h: 86, type: 'bed',      color: 'amber',  label: '床' },
+    { id: 'box_bed',    x: 146, y: 196, w: 52, h: 30, type: 'box',      color: 'teal',   label: '床底塑料箱1' },
+    { id: 'sofa',       x: 240, y: 96,  w: 66, h: 30, type: 'sofa',     color: 'coral',  label: '沙发' },
+    { id: 'tvcab',      x: 250, y: 218, w: 78, h: 18, type: 'tvcab',    color: 'purple', label: '电视柜' },
+    { id: 'shelf',      x: 36,  y: 300, w: 88, h: 26, type: 'shelf',    color: 'gray',   label: '储物架' },
+    { id: 'box_c',      x: 180, y: 336, w: 48, h: 34, type: 'box',      color: 'teal',   label: '纸箱C' },
   ],
   root: {
     id: 'home', name: '我的家', children: [
@@ -169,6 +181,8 @@ function reset() { cache = JSON.parse(JSON.stringify(SEED)); save(); }
 
 module.exports = {
   SEASON_LABEL,
+  get style() { return load().style; },
+  get plan() { return load().plan; },
   get zones() { return load().zones; },
   get furniture() { return load().furniture; },
   get root() { return load().root; },

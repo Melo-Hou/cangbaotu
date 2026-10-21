@@ -1,6 +1,6 @@
 // pages/map/map.js — 藏宝图 MVP 首页
 // 地图浏览 + 搜索高亮 + 点击下钻 + 物品录入/取出/放回/删除
-const { drawMap, hitTest } = require('../../utils/isomap.js');
+const { drawMap, hitTest } = require('../../utils/planmap.js'); // 户型图（俯视）风格
 const store = require('../../utils/store.js');
 
 const DW = 400, DH = 560; // 地图设计坐标（viewBox 逻辑尺寸）
@@ -53,7 +53,7 @@ Page({
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     const s = this.scale();
     ctx.setTransform(this.dpr * s, 0, 0, this.dpr * s, this.dpr * this.offX(), this.dpr * this.offY());
-    drawMap(ctx, store.zones, store.furniture, this.data.highlights);
+    drawMap(ctx, store.zones, store.furniture, this.data.highlights, store.plan);
     ctx.restore();
   },
 
