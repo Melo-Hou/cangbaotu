@@ -5,6 +5,10 @@
     <view class="navbtn" bindtap="goPlan">平面图 · 录入</view>
     <view class="navbtn" bindtap="goBuild">AI 建图</view>
   </view>
+  <view class="zoomctl">
+    <view class="zbtn" bindtap="zoomIn">＋</view>
+    <view class="zbtn" bindtap="zoomOut">－</view>
+  </view>
   <view class="reset" bindtap="resetCam">重置视角 V3</view>
   <view class="tip">单指拖动旋转 · 双指缩放 · 点家具看存放内容</view>
 

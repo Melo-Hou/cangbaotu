@@ -117,6 +117,8 @@ Page({
 
   closeInfo() { this.setData({ info: null }); this.render(); },
   resetCam() { this.cam = p3.makeCam(); this.render(); },
+  zoomIn() { this.cam.dist = Math.max(2.2, this.cam.dist / 1.35); this.render(); },
+  zoomOut() { this.cam.dist = Math.min(16, this.cam.dist * 1.35); this.render(); },
   goPlan() { wx.navigateTo({ url: '/pages/map/map' }); },
   goBuild() { wx.navigateTo({ url: '/pages/build/build' }); },
 });
