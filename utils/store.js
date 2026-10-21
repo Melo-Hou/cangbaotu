@@ -177,6 +177,30 @@ function removeItem(locationId, itemId) {
   save();
 }
 
+/** 用 AI 生成/校准后的布局替换底图与家具图形；位置树按家具 id 复用旧节点（保留已录物品） */
+function saveLayout(layout) {
+  const data = load();
+  data.plan = layout.plan;
+  data.zones = layout.zones;
+  data.furniture = layout.furniture;
+  const oldRoot = JSON.parse(JSON.stringify(data.root));
+  data.root = {
+    id: 'home', name: '我的家',
+    children: layout.furniture.map((f) => {
+      const found = walk(oldRoot, [oldRoot], f.id);
+      if (found) {
+        found.node.name = f.label || found.node.name;
+        return found.node;
+      }
+      return {
+        id: f.id, name: f.label || '未命名位置',
+        children: [{ id: 'in_' + f.id, name: '内部', items: [] }],
+      };
+    }),
+  };
+  save();
+}
+
 function reset() { cache = JSON.parse(JSON.stringify(SEED)); save(); }
 
 module.exports = {
@@ -186,5 +210,5 @@ module.exports = {
   get zones() { return load().zones; },
   get furniture() { return load().furniture; },
   get root() { return load().root; },
-  findById, search, addItem, addSubLocation, setItemStatus, removeItem, reset,
+  findById, search, addItem, addSubLocation, setItemStatus, removeItem, saveLayout, reset,
 };

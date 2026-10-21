@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/map/map"],
+  "pages": ["pages/map/map", "pages/build/build", "pages/view3d/view3d"],
   "window": {
     "navigationBarTitleText": "藏宝图",
     "navigationBarBackgroundColor": "#ffffff",

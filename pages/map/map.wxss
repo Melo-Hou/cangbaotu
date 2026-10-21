@@ -37,3 +37,7 @@
 .ss { font-size: 24rpx; padding: 8rpx 20rpx; border-radius: 16rpx; background: #f1efe8; color: #5f5e5a; }
 .ss.on { background: #e6f1fb; color: #185fa5; font-weight: 600; }
 .savebtn { margin-top: 16rpx; background: #185fa5; color: #fff; border-radius: 20rpx; text-align: center; padding: 16rpx 0; font-size: 27rpx; }
+
+.fabrow { position: fixed; right: 24rpx; bottom: 180rpx; display: flex; flex-direction: column; gap: 14rpx; z-index: 5; }
+.fab { background: #185fa5; color: #fff; border-radius: 32rpx; padding: 14rpx 28rpx; font-size: 24rpx; box-shadow: 0 4rpx 12rpx rgba(24,95,165,.3); text-align: center; }
+.fab:active { opacity: 0.85; }

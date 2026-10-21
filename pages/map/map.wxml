@@ -17,6 +17,10 @@
 
   <canvas id="map" type="2d" class="map" bindtouchstart="onTouchStart"></canvas>
   <view class="hint">点击家具下钻 · 搜索命中地图高亮</view>
+  <view class="fabrow">
+    <view class="fab" bindtap="goBuild">AI 建图</view>
+    <view class="fab" bindtap="go3d">3D 视图</view>
+  </view>
 
   <!-- 底部下钻面板 -->
   <view class="mask" wx:if="{{sheet}}" bindtap="closeSheet"></view>

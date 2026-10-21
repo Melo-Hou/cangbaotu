@@ -1,0 +1,19 @@
+<view class="page3d">
+  <canvas id="c3d" type="2d" class="c3d"
+          bindtouchstart="onTS" bindtouchmove="onTM" bindtouchend="onTE"></canvas>
+  <view class="reset" bindtap="resetCam">重置视角</view>
+  <view class="tip">单指拖动旋转 · 双指缩放 · 点家具看存放内容</view>
+
+  <view class="sheet3d" wx:if="{{info}}">
+    <view class="grab"></view>
+    <view class="path">{{info.path}}</view>
+    <view class="t">{{info.name}}</view>
+    <view class="sec" wx:if="{{info.subs.length}}">内部位置：{{info.subs}}</view>
+    <view class="sec" wx:if="{{info.items.length}}">存放物品</view>
+    <view class="item" wx:for="{{info.items}}" wx:key="id">
+      <text>{{item.name}}</text><text class="qty">×{{item.qty}}</text>
+    </view>
+    <view class="empty" wx:if="{{!info.items.length && !info.subs.length}}">这里还没有录入物品</view>
+    <view class="close" bindtap="closeInfo">收起</view>
+  </view>
+</view>

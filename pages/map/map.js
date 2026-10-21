@@ -90,6 +90,9 @@ Page({
   onSubTap(e) { this.openLocation(e.currentTarget.dataset.id); },
   closeSheet() { this.setData({ sheet: null }); },
 
+  goBuild() { wx.navigateTo({ url: '/pages/build/build' }); },
+  go3d() { wx.navigateTo({ url: '/pages/view3d/view3d' }); },
+
   /* ---- 录入 ---- */
   toggleAdd() { this.setData({ adding: !this.data.adding, subAdding: false }); },
   toggleSubAdd() { this.setData({ subAdding: !this.data.subAdding, adding: false }); },

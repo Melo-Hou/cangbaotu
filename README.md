@@ -32,10 +32,15 @@ miniprogram/
 
 ## 文件说明
 
-- `utils/isomap.js` Canvas 2D 等轴测绘制 + 射线法命中检测（核心引擎）
+- `utils/isomap.js` 2.5D 等轴测引擎（已由户型图取代，保留备查）
+- `utils/planmap.js` 户型图（平面俯视）渲染 + 矩形命中检测
+- `utils/plan3d.js` **3D 渲染引擎**（自研 Canvas 2D 光栅化：透视投影/背面剔除/画家算法/环绕相机，零依赖）
 - `utils/store.js` MVP 数据层（本地存储；接云开发时只改此文件）
-- `pages/map/` 首页：地图 + 搜索 + 下钻面板 + 录入表单
-- `utils/videoframes.js` + `cloudfunctions/analyzeVideo/` 视频建图（M4，可选开启）
+- `pages/map/` 首页：户型图 + 搜索高亮 + 下钻面板 + 录入表单 + 功能入口
+- `pages/build/` AI 建图向导：上传户型图图片 + 环视视频 → AI 生成布局 → 拖拽校准 → 保存
+- `pages/view3d/` 3D 视图：单指旋转/双指缩放/点家具看存放内容
+- `utils/videoframes.js` 客户端视频抽帧（VideoDecoder）
+- `cloudfunctions/analyzeHome/` 云函数：户型图+视频 → 视觉大模型 → 布局 JSON（需配 VISION_API_URL/KEY）
 - 交互原型（工作区根目录）：`藏宝图-交互原型.html` / `藏宝图-视频建图原型.html`
 
 ## 接入云数据库（M1）

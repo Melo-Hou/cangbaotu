@@ -1,0 +1,22 @@
+<view class="pg">
+  <view class="lead">① 上传户型图图片 → ② 上传家里环视视频 → AI 智能生成物品存储位置 → ③ 拖拽校准保存。两样素材至少提供一样。</view>
+
+  <view class="row">
+    <button class="btn {{planImg ? 'ok' : ''}}" bindtap="pickPlan">上传户型图{{planImg ? ' ✓' : ''}}</button>
+    <button class="btn {{frameCount ? 'ok' : ''}}" bindtap="pickVideo">上传视频{{frameCount ? ' ✓ ' + frameCount + '帧' : ''}}</button>
+  </view>
+
+  <image wx:if="{{planImg}}" src="{{planImg}}" class="pv" mode="aspectFit" />
+
+  <button class="btn primary" bindtap="runAI" disabled="{{running}}">{{running ? 'AI 分析中…' : '开始智能生成'}}</button>
+  <button class="btn ghost" bindtap="demo" disabled="{{running}}">没有素材？演示模式走全流程</button>
+
+  <view class="log" wx:if="{{log.length}}">
+    <text class="ln" wx:for="{{log}}" wx:key="*this">{{item}}</text>
+  </view>
+
+  <canvas id="draft" type="2d" class="draft"
+          bindtouchstart="onTS" bindtouchmove="onTM" bindtouchend="onTE"></canvas>
+  <view class="tip2" wx:if="{{draft}}">拖动家具校准位置 · 黄虚框 = 低置信度建议核对</view>
+  <button wx:if="{{draft}}" class="btn primary" bindtap="saveDraft">校准完成，保存并看 3D</button>
+</view>
