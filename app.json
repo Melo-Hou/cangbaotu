@@ -1,0 +1,11 @@
+{
+  "pages": ["pages/map/map"],
+  "window": {
+    "navigationBarTitleText": "藏宝图",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fbfaf7"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
